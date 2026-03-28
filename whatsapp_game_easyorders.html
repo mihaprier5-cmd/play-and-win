@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>العب واكسب 💰</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(135deg, #075e54, #128c7e);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+  }
+  .container {
+    background: #fff;
+    border-radius: 20px;
+    padding: 25px 20px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    text-align: center;
+  }
+  .logo { font-size: 50px; margin-bottom: 5px; }
+  h1 { color: #075e54; font-size: 22px; margin-bottom: 5px; }
+  .prize-display {
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    border-radius: 15px;
+    padding: 12px;
+    margin: 15px 0;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+  }
+  .prize-display span { font-size: 26px; display: block; }
+  .levels { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin: 10px 0; }
+  .level-btn {
+    background: #e0e0e0;
+    border: none;
+    border-radius: 8px;
+    padding: 5px 8px;
+    font-size: 11px;
+    color: #555;
+    font-family: inherit;
+  }
+  .level-btn.active { background: #128c7e; color: white; }
+  .level-btn.done { background: #25d366; color: white; }
+  .question-card {
+    background: #f0f4f8;
+    border-radius: 15px;
+    padding: 20px;
+    margin: 15px 0;
+  }
+  .question-num { color: #128c7e; font-size: 13px; margin-bottom: 8px; font-weight: bold; }
+  .question-text { font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 15px; }
+  .options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .opt-btn {
+    background: white;
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    padding: 12px 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: inherit;
+    color: #333;
+  }
+  .opt-btn:hover:not(:disabled) { border-color: #128c7e; background: #e8f5e9; transform: scale(1.02); }
+  .opt-btn.correct { background: #25d366; color: white; border-color: #25d366; }
+  .opt-btn.wrong-ans { background: #e74c3c; color: white; border-color: #e74c3c; }
+  .opt-btn:disabled { cursor: default; }
+  .helps { display: flex; justify-content: center; gap: 10px; margin: 10px 0; }
+  .help-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: opacity 0.3s;
+  }
+  .help-btn:disabled { opacity: 0.4; cursor: default; }
+  .msg-box {
+    background: #fff3cd;
+    border: 2px solid #ffc107;
+    border-radius: 12px;
+    padding: 12px;
+    margin: 10px 0;
+    font-size: 14px;
+    color: #856404;
+    display: none;
+  }
+  .action-btn {
+    background: linear-gradient(135deg, #25d366, #128c7e);
+    color: white;
+    border: none;
+    border-radius: 15px;
+    padding: 14px 30px;
+    font-size: 16px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: bold;
+    width: 100%;
+    margin-top: 10px;
+    transition: transform 0.2s;
+  }
+  .action-btn:hover { transform: scale(1.02); }
+  .result-screen { display: none; padding: 10px 0; }
+  .result-emoji { font-size: 60px; margin: 10px 0; }
+  .result-title { font-size: 22px; font-weight: bold; color: #075e54; margin-bottom: 10px; }
+  .result-msg { font-size: 14px; color: #555; line-height: 1.7; margin-bottom: 10px; }
+  .prize-reveal {
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    border-radius: 15px;
+    padding: 20px;
+    margin: 15px 0;
+    color: white;
+  }
+  .prize-reveal .real-amount { font-size: 48px; font-weight: bold; }
+  .prize-reveal .note { font-size: 12px; opacity: 0.9; margin-top: 5px; }
+  .bank-slip {
+    background: #f9f9f9;
+    border: 2px dashed #ccc;
+    border-radius: 12px;
+    padding: 15px;
+    margin: 10px 0;
+    font-size: 13px;
+    text-align: right;
+    color: #444;
+    line-height: 2;
+  }
+  .bank-slip .bank-title { font-weight: bold; color: #075e54; font-size: 15px; text-align: center; margin-bottom: 8px; }
+  .progress-bar { background: #e0e0e0; border-radius: 10px; height: 8px; margin: 10px 0; overflow: hidden; }
+  .progress-fill { background: linear-gradient(90deg, #25d366, #128c7e); height: 100%; border-radius: 10px; transition: width 0.5s; }
+  .timer { font-size: 20px; font-weight: bold; color: #e74c3c; margin: 5px 0; }
+
+  /* ===== Easy Orders CTA ===== */
+  .order-section {
+    background: linear-gradient(135deg, #0d47a1, #1976d2);
+    border-radius: 15px;
+    padding: 18px;
+    margin: 12px 0;
+    color: white;
+  }
+  .order-section p { font-size: 13px; margin-bottom: 10px; line-height: 1.7; opacity: 0.95; }
+  .order-btn {
+    background: #ffd700;
+    color: #0d47a1;
+    border: none;
+    border-radius: 12px;
+    padding: 13px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: inherit;
+    width: 100%;
+    transition: transform 0.2s;
+  }
+  .order-btn:hover { transform: scale(1.02); }
+  .share-btn {
+    background: #25d366;
+    color: white;
+    border: none;
+    border-radius: 15px;
+    padding: 14px;
+    font-size: 15px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: bold;
+    width: 100%;
+    margin-top: 8px;
+  }
+  .rules {
+    background: #e8f5e9;
+    border-radius: 12px;
+    padding: 15px;
+    text-align: right;
+    margin: 10px 0;
+    font-size: 13px;
+    color: #2d6a4f;
+    line-height: 2;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Start Screen -->
+  <div id="startScreen">
+    <div class="logo">🎯</div>
+    <h1>العب واكسب!</h1>
+    <div class="prize-display">
+      <span>1,000,000 جنيه 💰</span>
+      الجائزة الكبرى
+    </div>
+    <div class="rules">
+      🆘 3 مساعدات (50/50 - اتصال - جمهور)<br>
+      ⏱️ 30 ثانية لكل سؤال<br>
+      🛑 خطأ واحد = نهاية اللعبة<br>
+      💡 يمكنك الانسحاب في أي وقت
+    </div>
+    <button class="action-btn" onclick="startGame()">🚀 ابدأ اللعبة!</button>
+  </div>
+
+  <!-- Game Screen -->
+  <div id="gameScreen" style="display:none">
+    <div class="logo" style="font-size:30px">🎯 العب واكسب</div>
+    <div class="prize-display">
+      <span id="currentPrize">0 جنيه</span>
+      المبلغ الحالي
+    </div>
+    <div class="timer" id="timer">⏱️ 30</div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="levels" id="levelsBar"></div>
+    <div class="question-card">
+      <div class="question-num" id="questionNum">سؤال 1 من 15</div>
+      <div class="question-text" id="questionText">...</div>
+      <div class="options" id="optionsDiv"></div>
+    </div>
+    <div class="helps">
+      <button class="help-btn" id="help1" onclick="useFiftyFifty()">50/50</button>
+      <button class="help-btn" id="help2" onclick="useCall()">📞 اتصال</button>
+      <button class="help-btn" id="help3" onclick="useAudience()">👥 جمهور</button>
+    </div>
+    <div class="msg-box" id="msgBox"></div>
+    <button class="action-btn" onclick="walkAway()" style="background:linear-gradient(135deg,#e74c3c,#c0392b); margin-top:8px">
+      🚶 خذ المبلغ وانسحب
+    </button>
+  </div>
+
+  <!-- Result Screen -->
+  <div class="result-screen" id="resultScreen">
+    <div class="result-emoji" id="resultEmoji">🎉</div>
+    <div class="result-title" id="resultTitle">مبروك!</div>
+    <div class="result-msg" id="resultMsg"></div>
+
+    <div class="bank-slip">
+      <div class="bank-title">🏦 إيصال الجائزة الرسمي</div>
+      <span>تاريخ الفوز:</span> <b id="slipDate"></b><br>
+      <span>عدد الأسئلة الصحيحة:</span> <b id="slipQ"></b><br>
+      <span>المبلغ المستحق:</span> <b id="slipAmount" style="color:#e74c3c;font-size:16px"></b>
+    </div>
+
+    <div class="prize-reveal">
+      <div>🏆 مبلغك الفائز</div>
+      <div class="real-amount">50 جنيه</div>
+      <div class="note">يُصرف خلال 24 ساعة 🎊</div>
+    </div>
+
+    <!-- Easy Orders CTA -->
+    <div class="order-section">
+      <p>🎁 لاستلام جائزتك، قم بتأكيد بياناتك عبر الرابط الرسمي واحصل على مكافأتك الآن!</p>
+      <button class="order-btn" onclick="goToOrder()">🛒 اضغط هنا لاستلام الجائزة</button>
+    </div>
+
+    <button class="share-btn" onclick="shareResult()">📤 شارك نتيجتك مع أصحابك</button>
+    <button class="action-btn" onclick="restartGame()" style="background:linear-gradient(135deg,#667eea,#764ba2); margin-top:8px">🔄 العب مرة أخرى</button>
+  </div>
+
+</div>
+
+<script>
+// ===== غيّر الرابط ده برابط ايزي اوردير بتاعك =====
+const EASY_ORDERS_URL = "https://eg.easyorders.store/YOUR_STORE_LINK";
+
+const questions = [
+  { q: "ما هو أكبر محيط في العالم؟", opts: ["الأطلسي","الهادي","الهندي","المتجمد الشمالي"], ans: 1 },
+  { q: "كم عدد كواكب المجموعة الشمسية؟", opts: ["7","9","8","10"], ans: 2 },
+  { q: "أي حيوان معروف بذاكرته القوية جداً؟", opts: ["الحصان","الدلفين","الفيل","الغراب"], ans: 2 },
+  { q: "ما هي أصغر دولة في العالم مساحةً؟", opts: ["موناكو","سان مارينو","الفاتيكان","ليختنشتاين"], ans: 2 },
+  { q: "كم يستغرق ضوء الشمس للوصول للأرض؟", opts: ["3 دقائق","8 دقائق","15 دقيقة","1 ساعة"], ans: 1 },
+  { q: "ما هي عاصمة أستراليا؟", opts: ["سيدني","ملبورن","بريسبان","كانبيرا"], ans: 3 },
+  { q: "كم عدد عظام جسم الإنسان البالغ؟", opts: ["196","216","206","226"], ans: 2 },
+  { q: "أي فاكهة تحتوي على أعلى نسبة ماء؟", opts: ["التفاح","العنب","البرتقال","البطيخ"], ans: 3 },
+  { q: "ما هو أعمق بحيرة في العالم؟", opts: ["فيكتوريا","سوبيريور","تيتيكاكا","بايكال"], ans: 3 },
+  { q: "كم عدد أسنان الإنسان البالغ الطبيعية؟", opts: ["28","30","32","34"], ans: 2 },
+  { q: "ما هو أطول نهر في العالم؟", opts: ["الأمازون","الكونغو","المسيسيبي","النيل"], ans: 3 },
+  { q: "كم يبلغ عمر الكون تقريباً بالمليارات؟", opts: ["4.5","9","13.8","20"], ans: 2 },
+  { q: "أي طائر يستطيع الطيران للخلف؟", opts: ["الطاووس","البومة","الطائر الطنان","الببغاء"], ans: 2 },
+  { q: "ما هي أكثر لغة منطوقة في العالم من حيث عدد المتحدثين الأصليين؟", opts: ["الإنجليزية","العربية","الإسبانية","الماندرين"], ans: 3 },
+  { q: "كم تبعد المريخ عن الشمس تقريباً بالمقارنة بالأرض؟", opts: ["مسافة مماثلة","1.5 ضعف","ضعفين","3 أضعاف"], ans: 1 }
+];
+
+const prizes = [0,50,100,200,500,1000,2000,5000,10000,20000,50000,100000,200000,500000,1000000];
+let currentQ = 0, timerInterval = null, timeLeft = 30, answered = false;
+let helps = { fifty: true, call: true, audience: true };
+
+function startGame() {
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('gameScreen').style.display = 'block';
+  buildLevels(); showQuestion();
+}
+
+function buildLevels() {
+  const bar = document.getElementById('levelsBar');
+  bar.innerHTML = '';
+  for(let i = 14; i >= 0; i--) {
+    const b = document.createElement('div');
+    b.className = 'level-btn' + (i === currentQ ? ' active' : (i < currentQ ? ' done' : ''));
+    b.id = 'lvl' + i;
+    b.textContent = formatPrize(prizes[i+1]);
+    bar.appendChild(b);
+  }
+}
+
+function formatPrize(n) {
+  if(n >= 1000000) return n/1000000+'م';
+  if(n >= 1000) return n/1000+'ك';
+  return n;
+}
+
+function showQuestion() {
+  answered = false;
+  const q = questions[currentQ];
+  document.getElementById('questionNum').textContent = `سؤال ${currentQ+1} من 15`;
+  document.getElementById('questionText').textContent = q.q;
+  document.getElementById('currentPrize').textContent = prizes[currentQ].toLocaleString() + ' جنيه';
+  document.getElementById('progressFill').style.width = ((currentQ/15)*100) + '%';
+  document.getElementById('msgBox').style.display = 'none';
+  const opts = document.getElementById('optionsDiv');
+  opts.innerHTML = '';
+  const letters = ['أ','ب','ج','د'];
+  q.opts.forEach((o, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn'; btn.id = 'opt' + i;
+    btn.textContent = letters[i] + ') ' + o;
+    btn.onclick = () => selectAnswer(i);
+    opts.appendChild(btn);
+  });
+  buildLevels(); startTimer();
+}
+
+function startTimer() {
+  clearInterval(timerInterval); timeLeft = 30;
+  document.getElementById('timer').textContent = '⏱️ ' + timeLeft;
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    document.getElementById('timer').textContent = '⏱️ ' + timeLeft;
+    if(timeLeft <= 0) { clearInterval(timerInterval); timeUp(); }
+  }, 1000);
+}
+
+function timeUp() {
+  showMsg('⏰ انتهى الوقت!');
+  document.getElementById('opt'+questions[currentQ].ans).classList.add('correct');
+  disableOptions();
+  setTimeout(() => endGame(false), 2000);
+}
+
+function selectAnswer(idx) {
+  if(answered) return;
+  answered = true; clearInterval(timerInterval);
+  const q = questions[currentQ]; disableOptions();
+  if(idx === q.ans) {
+    document.getElementById('opt'+idx).classList.add('correct');
+    showMsg('✅ إجابة صحيحة! 🎉');
+    setTimeout(() => { currentQ === 14 ? endGame(true, true) : (currentQ++, showQuestion()); }, 1500);
+  } else {
+    document.getElementById('opt'+idx).classList.add('wrong-ans');
+    document.getElementById('opt'+q.ans).classList.add('correct');
+    showMsg('❌ إجابة خاطئة!');
+    setTimeout(() => endGame(false), 2000);
+  }
+}
+
+function disableOptions() {
+  for(let i=0;i<4;i++) { const b=document.getElementById('opt'+i); if(b) b.disabled=true; }
+}
+
+function showMsg(txt) {
+  const m = document.getElementById('msgBox'); m.style.display='block'; m.textContent=txt;
+}
+
+function useFiftyFifty() {
+  if(!helps.fifty||answered) return; helps.fifty=false;
+  document.getElementById('help1').disabled=true;
+  const q=questions[currentQ]; let removed=0;
+  for(let i=0;i<4;i++) if(i!==q.ans&&removed<2){document.getElementById('opt'+i).style.opacity='0.2';document.getElementById('opt'+i).disabled=true;removed++;}
+  showMsg('💡 تمت إزالة إجابتين خاطئتين!');
+}
+
+function useCall() {
+  if(!helps.call||answered) return; helps.call=false;
+  document.getElementById('help2').disabled=true;
+  const q=questions[currentQ]; const letters=['أ','ب','ج','د'];
+  showMsg(`📞 صديقك يقول: "أنا متأكد الإجابة هي ${letters[q.ans]}) ${q.opts[q.ans]}"`);
+}
+
+function useAudience() {
+  if(!helps.audience||answered) return; helps.audience=false;
+  document.getElementById('help3').disabled=true;
+  const q=questions[currentQ]; const letters=['أ','ب','ج','د'];
+  showMsg(`👥 الجمهور: 72% يختار ${letters[q.ans]}) ${q.opts[q.ans]}`);
+}
+
+function walkAway() { clearInterval(timerInterval); endGame(false,false,true); }
+
+function endGame(won, fullWin=false, walkedAway=false) {
+  clearInterval(timerInterval);
+  document.getElementById('gameScreen').style.display='none';
+  document.getElementById('resultScreen').style.display='block';
+  const now = new Date();
+  document.getElementById('slipDate').textContent = now.toLocaleDateString('ar-EG') + ' - ' + now.toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('slipQ').textContent = currentQ + (fullWin ? ' (مكتمل 🏆)' : '');
+  document.getElementById('slipAmount').textContent = '50 جنيه';
+
+  if(fullWin) {
+    document.getElementById('resultEmoji').textContent='🏆';
+    document.getElementById('resultTitle').textContent='أنت بطل! أجبت على الكل!';
+    document.getElementById('resultMsg').textContent='مبروك! أجبت على جميع الأسئلة الـ 15 بشكل صحيح وفزت بالجائزة!';
+  } else if(walkedAway) {
+    document.getElementById('resultEmoji').textContent='🤑';
+    document.getElementById('resultTitle').textContent='انسحبت بذكاء!';
+    document.getElementById('resultMsg').textContent=`انسحبت في السؤال ${currentQ+1} وفزت بمبلغك!`;
+  } else {
+    document.getElementById('resultEmoji').textContent='😓';
+    document.getElementById('resultTitle').textContent='انتهت اللعبة!';
+    document.getElementById('resultMsg').textContent=`أجبت على ${currentQ} سؤال صح. مبلغك المستحق:`;
+  }
+}
+
+function goToOrder() { window.location.href = EASY_ORDERS_URL; }
+
+function shareResult() {
+  const text = `🎯 لعبت لعبة "العب واكسب"!
+✅ أجبت على ${currentQ} سؤال
+💰 فزت بـ: 50 جنيه
+
+جرب أنت! 👇`;
+  window.open('https://wa.me/?text='+encodeURIComponent(text),'_blank');
+}
+
+function restartGame() {
+  currentQ=0; helps={fifty:true,call:true,audience:true}; answered=false;
+  ['help1','help2','help3'].forEach(id=>document.getElementById(id).disabled=false);
+  document.getElementById('resultScreen').style.display='none';
+  document.getElementById('startScreen').style.display='block';
+}
+</script>
+</body>
+</html>
